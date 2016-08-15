@@ -1,1 +1,0 @@
-Moved to: <a href="https://github.com/brakmic/purescript-redux/blob/master/docs/Tutorial.md">Tutorial</a>

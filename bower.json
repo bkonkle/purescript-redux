@@ -1,6 +1,6 @@
 {
   "name": "purescript-redux",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "repository": {
     "type": "git",
     "url": "git://github.com/brakmic/purescript-redux.git"
@@ -22,7 +22,6 @@
   ],
   "dependencies": {
     "purescript-console": "^1.0.0",
-    "purescript-easy-ffi": "^2.0.0",
     "purescript-foldable-traversable": "^1.0.0",
     "purescript-strings": "^1.0.0",
     "purescript-exceptions": "^1.0.0",

@@ -1,5 +1,5 @@
 module Control.Monad.Eff.Redux
-  ( ReduxM
+  ( STORE
   , Redux
   , ReduxEff
   , Reducer
@@ -21,56 +21,52 @@ module Control.Monad.Eff.Redux
 
 import Prelude
 import Control.Monad.Eff (Eff)
-import Data.Foreign.EasyFFI (unsafeForeignFunction, unsafeForeignProcedure)
 
--- | Redux Objects & Effects
+newtype Action action = Action { "type" :: action }
 
--- `action object` for the `dispatch`-API of `createStore`
--- according to Redux docs the action objects must have a `type` property
--- it is recommended to use string constants for `type`
-type Action a b =
-  { "type" :: a
-  | b
-  }
+foreign import data STORE :: !
 
-foreign import data ReduxM :: !
+foreign import data Redux :: *
 
-foreign import data Redux  :: *
+foreign import data Store :: *
 
-foreign import data Store  :: *
+type ReduxEff eff value = Eff (store :: STORE | eff) value
 
-type ReduxEff a  = forall e. Eff (reduxM :: ReduxM | e) a
+type Reducer action state = state -> Action action -> state
 
-type Reducer = forall a b c. a -> Action b c -> a
+type Dispatch action eff = Action action -> ReduxEff eff (Action action)
 
-type Dispatch = forall a b. Action a b -> ReduxEff (Action a b)
+type GetState eff state = ReduxEff eff state
 
-type GetState = forall a. ReduxEff a
+type CreateStore action state eff =
+  Reducer action state -> action -> ReduxEff eff Store
 
-type CreateStore = forall a. Reducer -> a -> ReduxEff Store
+type Next action eff = Dispatch action eff
 
-type Next = Dispatch
+type Middleware action eff =
+  Store -> Next action eff -> Action action -> ReduxEff eff (Action action)
 
-type Middleware = forall a b. Store -> Next -> (Action a b) -> ReduxEff (Action a b)
+foreign import createStore :: forall action state eff.
+  Reducer action state -> state -> ReduxEff eff Store
 
--- | FFI Calls / Shortcuts
-ffiF :: forall a. Array String -> String -> a
-ffiF = unsafeForeignFunction
+foreign import subscribe :: forall eff.
+  Eff eff Unit -> Store -> ReduxEff eff Unit
 
-ffiP :: forall a. Array String -> String -> a
-ffiP = unsafeForeignProcedure
+foreign import dispatch :: forall action eff.
+  Action action -> Store -> ReduxEff eff (Action action)
 
--- | **TODO** Redux APIs (http://redux.js.org/)
-foreign import createStore :: forall a b c. (a -> Action b c -> a) -> a -> ReduxEff Store
+foreign import getState :: forall eff state. Store -> ReduxEff eff state
 
-foreign import subscribe :: forall e. (Eff e Unit) -> Store -> ReduxEff Unit
+foreign import replaceReducer :: forall action state eff.
+  Reducer action state -> Store -> ReduxEff eff Unit
 
-foreign import dispatch :: forall a b. Action a b -> Store -> ReduxEff (Action a b)
+foreign import combineReducers :: forall action state eff.
+  Array (Reducer action state) -> ReduxEff eff (Reducer action state)
 
-foreign import getState :: forall a. Store -> ReduxEff a
+foreign import applyMiddleware :: forall state action eff.
+  Array (Middleware action eff) -> Reducer action state -> state ->
+  ReduxEff eff Store
 
-foreign import replaceReducer :: Reducer -> Store -> ReduxEff Unit
-
-foreign import combineReducers :: forall a b c. Array (a -> Action b c -> a) -> ReduxEff Reducer
-
-foreign import applyMiddleware :: forall a b c d. Array a -> (b -> Action c d -> b) -> b -> ReduxEff Store
+-- | Construct a pure Redux action.
+action :: forall action. action -> Action action
+action = Action <<< { "type": _ }
