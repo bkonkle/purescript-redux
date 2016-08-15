@@ -1,22 +1,23 @@
 module Control.Monad.Eff.Redux
-  ( STORE
-  , Redux
-  , ReduxEff
-  , Reducer
+  ( Action(Action)
+  , CreateStore
   , Dispatch
   , GetState
-  , CreateStore
-  , Next
   , Middleware
+  , Next
+  , Reducer
+  , Redux
+  , ReduxEff
   , Store
-  , Action
+  , STORE
+  , action
+  , applyMiddleware
+  , combineReducers
   , createStore
-  , subscribe
   , dispatch
   , getState
   , replaceReducer
-  , combineReducers
-  , applyMiddleware
+  , subscribe
   ) where
 
 import Prelude
@@ -60,8 +61,8 @@ foreign import getState :: forall eff state. Store -> ReduxEff eff state
 foreign import replaceReducer :: forall action state eff.
   Reducer action state -> Store -> ReduxEff eff Unit
 
-foreign import combineReducers :: forall action state eff.
-  Array (Reducer action state) -> ReduxEff eff (Reducer action state)
+foreign import combineReducers :: forall reducers action state eff.
+  Record reducers -> ReduxEff eff (Reducer action state)
 
 foreign import applyMiddleware :: forall state action eff.
   Array (Middleware action eff) -> Reducer action state -> state ->
