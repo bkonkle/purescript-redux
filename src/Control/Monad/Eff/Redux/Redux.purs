@@ -8,11 +8,13 @@ module Control.Monad.Eff.Redux
   , Reducer
   , Redux
   , ReduxEff
+  , ReduxReducer
   , Store
   , STORE
-  , action
   , applyMiddleware
   , combineReducers
+  , createAction
+  , createReducer
   , createStore
   , dispatch
   , getState
@@ -22,6 +24,9 @@ module Control.Monad.Eff.Redux
 
 import Prelude
 import Control.Monad.Eff (Eff)
+import Data.Function.Uncurried (mkFn2, Fn2)
+import Data.Maybe (Maybe(Just))
+import Data.Nullable (Nullable, toMaybe)
 
 newtype Action action = Action { "type" :: action }
 
@@ -33,7 +38,10 @@ foreign import data Store :: *
 
 type ReduxEff eff value = Eff (store :: STORE | eff) value
 
-type Reducer action state = state -> Action action -> state
+type Reducer action state = action -> state -> state
+
+newtype ReduxReducer action state =
+  ReduxReducer (Fn2 (Nullable state) (Action action) state)
 
 type Dispatch action eff = Action action -> ReduxEff eff (Action action)
 
@@ -68,6 +76,18 @@ foreign import applyMiddleware :: forall state action eff.
   Array (Middleware action eff) -> Reducer action state -> state ->
   ReduxEff eff Store
 
+-- | Apply an initial state and an action to a reducer
+foreign import applyReducer :: forall action state.
+  Reducer action state -> action -> state -> state
+
 -- | Construct a pure Redux action.
-action :: forall action. action -> Action action
-action = Action <<< { "type": _ }
+createAction :: forall action. action -> Action action
+createAction = Action <<< { "type": _ }
+
+-- | Construct a reducer that unwraps the action before using.
+createReducer :: forall action state.
+  Reducer action state -> state -> ReduxReducer action state
+createReducer reducer initialState = ReduxReducer <<< mkFn2 $
+  \state (Action action) -> case (toMaybe state) of
+      (Just state') -> applyReducer reducer action.type state'
+      otherwise -> initialState

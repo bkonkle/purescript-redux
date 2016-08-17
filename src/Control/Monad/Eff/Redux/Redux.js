@@ -6,6 +6,7 @@ module.exports = {
   dispatch: Interface.dispatch,
   getState: Interface.getState,
   replaceReducer: Interface.replaceReducer,
+  applyReducer: Interface.applyReducer,
   combineReducers: Interface.combineReducers,
   applyMiddleware: Interface.applyMiddleware
 }

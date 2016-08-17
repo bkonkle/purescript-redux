@@ -32,6 +32,7 @@
     "purescript-maybe": "^1.0.0",
     "purescript-debug": "^1.0.0",
     "purescript-random": "^1.0.0",
-    "purescript-prelude": "^1.0.1"
+    "purescript-prelude": "^1.0.1",
+    "purescript-nullable": "^1.0.1"
   }
 }
