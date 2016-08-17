@@ -1,4 +1,4 @@
-var Interface = require('../../../../../lib/Interface')
+var Interface = require('purescript-redux').Interface
 
 module.exports = {
   createStore: Interface.createStore,

@@ -1,20 +1,20 @@
 'use strict';
 
 exports.__esModule = true;
-exports.combineReducers = exports.applyMiddleware = exports.replaceReducer = exports.getState = exports.dispatch = exports.subscribe = exports.createStore = undefined;
+exports.combineReducers = exports.applyMiddleware = exports.applyReducer = exports.replaceReducer = exports.getState = exports.dispatch = exports.subscribe = exports.createStore = undefined;
 
 var _redux = require('redux');
 
-var _redux2 = _interopRequireDefault(_redux);
+var Redux = _interopRequireWildcard(_redux);
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 // `createStore` needs a 2-parameter, pure function for creating a new store.
 // The `initialState` can be used to 'rehydrate' the client state.
 var createStore = exports.createStore = function createStore(reducer) {
   return function (initialState) {
     return function () {
-      return _redux2.default.createStore(extractReducer(reducer), initialState);
+      return Redux.createStore(extractReducer(reducer), initialState);
     };
   };
 };
@@ -62,6 +62,22 @@ var replaceReducer = exports.replaceReducer = function replaceReducer(store) {
   };
 };
 
+// Apply an action and an initial state to a reducer
+var applyReducer = exports.applyReducer = function applyReducer(reducer) {
+  return function (action) {
+    return function (state) {
+      try {
+        state = reducer(action)(state);
+      } catch (e) {
+        if (!e.message.startsWith('Failed pattern match')) {
+          throw e;
+        }
+      }
+      return state;
+    };
+  };
+};
+
 // For injecting 3rd-party extensions between dispatch and reducer.
 // http://redux.js.org/docs/advanced/Middleware.html
 var applyMiddleware = exports.applyMiddleware = function applyMiddleware(middlewares) {
@@ -69,23 +85,23 @@ var applyMiddleware = exports.applyMiddleware = function applyMiddleware(middlew
     return function (initialState) {
       return function () {
         var all = middlewares.map(extractMiddleware);
-        return _redux2.default.createStore(extractReducer(reducer), initialState, _redux2.default.applyMiddleware.apply(undefined, all));
+        return Redux.createStore(extractReducer(reducer), initialState, Redux.applyMiddleware.apply(undefined, all));
       };
     };
   };
 };
 
-// For combining separate `reducing functions` int one reducer
+// For combining separate `reducing functions` into one reducer
 // http://redux.js.org/docs/api/combineReducers.html
 var combineReducers = exports.combineReducers = function combineReducers(reducers) {
   return function () {
-    return _redux2.default.combineReducers(reducers);
+    return Redux.combineReducers(reducers);
   };
 };
 
 var extractReducer = function extractReducer(reducer) {
-  return function (a, b) {
-    return reducer(a)(b);
+  return function (action, state) {
+    return reducer(action)(state);
   };
 };
 

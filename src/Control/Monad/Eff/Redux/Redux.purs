@@ -88,6 +88,7 @@ createAction = Action <<< { "type": _ }
 createReducer :: forall action state.
   Reducer action state -> state -> ReduxReducer action state
 createReducer reducer initialState = ReduxReducer <<< mkFn2 $
-  \state (Action action) -> case (toMaybe state) of
+  \state (Action action) ->
+    case (toMaybe state) of
       (Just state') -> applyReducer reducer action.type state'
       otherwise -> initialState
